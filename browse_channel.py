@@ -5,7 +5,7 @@ from random import random
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 
-url = "https://www.youtube.com/channel/UCN3W411iNFHkVXUun4vp10w/videos"
+url = "https://www.youtube.com/user/khanacademy/videos"
 
 def browse_channel(channel_url):
 
