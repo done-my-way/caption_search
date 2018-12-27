@@ -2,7 +2,7 @@ import pytube
 import os
 import argparse
 import re
-
+from xml.etree import ElementTree as ET
 
 def channel_links(channel_url):
 
@@ -28,14 +28,14 @@ def links_from_file(path):
     with open(path) as f:
         lk = f.readlines()
 
-    lk = [line.strip('\n') for line in lk]
+    lk = [line for line in lk]
 
     return lk
 
 
 def download_subs(links_list):
 
-    base_url = 'https://www.youtube.com'
+    base_url = 'https://www.youtube.com/'
 
     if not os.path.exists('./subs'):
         os.mkdir('./subs')
@@ -48,19 +48,25 @@ def download_subs(links_list):
 
     i = 1
 
-    for url in links_list:
-        yt = pytube.YouTube(base_url + url)
-        title = str(yt.title)
-        print(f'{i} out of {len(lk)}: {title}')
-        i += 1
-        caption = yt.captions.get_by_language_code('en')
-        srt = caption.generate_srt_caption()
-        with open('./subs/xml/{}.xml'.format(title), 'w') as f:
-            f.writelines(caption)
-        with open('./subs/srt/{}.srt'.format(title), 'w') as f:
-            f.writelines(srt)
-        with open('./subs/parsed_list.txt', 'a') as f:
-            f.write(url + '\n')
+    for url in links_list[77:]:
+        print(base_url + url)
+        try:
+            yt = pytube.YouTube(base_url + url)
+            title = str(yt.title)
+            print(f'{i} out of {len(links_list)}: {title}')
+            i += 1
+            caption = yt.captions.get_by_language_code('en')
+            with open('./subs/xml/{}.xml'.format(title), 'w') as f:
+                f.write(str(caption.xml_captions))
+            with open('./subs/srt/{}.srt'.format(title), 'w') as f:
+                srt = caption.generate_srt_captions()
+                f.writelines(srt)
+            with open('./subs/parsed_list.txt', 'a') as f:
+                f.write(url + '\n')
+        except:
+            print('smth went wrong')
+            with open('./subs/error_log', 'a') as f:
+                f.write(url + '\n')
 
 def main():
 
@@ -71,12 +77,14 @@ def main():
     args = parser.parse_args()
 
     if args.link:
-        links = args.link + 'link'
+        links = channel_links(args.link)
     elif args.path:
-        links = args.path + 'path'
+        links = links_from_file(args.path)
     else:
         print('no URL provided')
         exit()
+
+    #print(links)
 
     download_subs(links)
 
