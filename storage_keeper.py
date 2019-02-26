@@ -1,15 +1,14 @@
 from elasticsearch import Elasticsearch
-from elasticsearch.client import IndicesClient
 import srt
-import os.path
+import os
 
 es = Elasticsearch()
-idx = IndicesClient(es)
 
 mappings = {"_doc":
             {
              "properties":
              {
+              "url": {"type": "text"},
               "name": {"type": "text"},
               "time": {"type": "short"},
               "content": {"type": "text"}
@@ -17,34 +16,33 @@ mappings = {"_doc":
             }
            }
 
+if es.indices.exists("khan_academy"):
+    es.indices.delete("khan_academy")
 
-idx.create(index="khan_academy",
-           body={"mappings": mappings})
+es.indices.create("khan_academy", {"mappings": mappings})
 
+path = './subs/srt/'
 
+with open('./logs/in_storage.log', 'r') as f:
+    in_storage = f.readlines()
+    in_storage = [line for line in in_storage]
 
-# read file
-path = '/home/wswolod/Projects/caption_search/CS/subs/srt/2d curl example.srt'
+for file in os.listdir('./subs/srt'):
+    if os.path.isfile(path+file) and (file not in in_storage):
+        with open('./logs/in_storage.log', 'a') as f:
+            f.write(file+'\n')
+        print(file)
+        try:
+            with open(path+file, 'r') as f:
+                doc = f.read()
+                body = {}
+                for line in srt.parse(doc):
+                    body['url'] = file.split('.')[0].split('*')[0]
+                    body['name'] = file.split('.')[0].split('*')[1]
+                    body['time'] = int(line.start.total_seconds())
+                    body['content'] = line.content
+                    es.index(index="khan_academy", doc_type='_doc', body=body)
+        except Exception as err:
+            with open('./logs/storage_keeper.log', 'a') as f:
+                f.write(str(err)+'\n')
 
-with open(path, 'r') as f:
-    doc = f.read()
-    body = {}
-    for line in srt.parse(doc):
-        body['name'] = os.path.basename(path).split('.')[0]
-        body['time'] = int(line.start.total_seconds())
-        body['content'] = line.content
-        es.create(index="khan_academy",
-                  # TODO: ids from hyperlinks
-                  body=body)
-
-# parse it
-
-# form JSON
-
-"""
-{text: "text", str
- link: "link", str
- name: "name", str
- time: time}   float/int
-"""
-# push it to elastisearch storage
