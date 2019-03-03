@@ -2,3 +2,4 @@ env
 subs
 .vscode
 WebPage/__pycache__
+storage/__pycache__

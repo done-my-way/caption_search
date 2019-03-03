@@ -1,0 +1,10 @@
+{% block content %}
+  <h1>Search results for "{{ query }}":</h1>
+  {% for post in results %}
+        <br>{{post[0]}}</br>
+        <br>{{post[1]}}</br>
+        <br><a href="{{post[2]}}">{{post[2]}}</a></br>
+        <iframe src={{'https://www.youtube.com/embed/'+post[2]+'?start='+post[3]}} width="853" height="480" frameborder="0" allowfullscreen></iframe>
+        <br></br>
+  {% endfor %}
+{% endblock %}
