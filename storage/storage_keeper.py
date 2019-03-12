@@ -66,9 +66,9 @@ class StorageKeeper:
         
         return hits
 
-def create_index():
+def create_index(host="localhost", port=9200):
 
-    es = Elasticsearch()
+    es = Elasticsearch([{"host": host, "port": port}])
 
     mappings = {"_doc":
                 {
@@ -83,6 +83,19 @@ def create_index():
             }
 
     if es.indices.exists("khan_academy"):
-        es.indices.delete("khan_academy")
+        return None
+        # es.indices.delete("khan_academy")
     
     es.indices.create("khan_academy", {"mappings": mappings})
+
+def batch_upload(host="localhost", port=9200, idx="khan_academy", directory='../subs'):
+    sk = StorageKeeper(host=host, port=port)
+    for file in os.listdir(directory):
+        print(file)
+        sk.push_subs(directory+file, idx=idx)
+
+if __name__=="__main__":
+    #create_index(host="139.59.141.97", port=9200)
+    #batch_upload(host="139.59.141.97", port=9200, idx="khan_academy", directory='../subs/')
+    sk  = StorageKeeper(host="139.59.141.97", port=9200)
+    sk.push_subs('./storage/test_modified.srt')

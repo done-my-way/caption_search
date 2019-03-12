@@ -1,5 +1,5 @@
 from flask import Flask
-from WebPage.forms import SearchForm
+from webpage.forms import SearchForm
 from flask import request, render_template
 from storage.storage_keeper import StorageKeeper
 
