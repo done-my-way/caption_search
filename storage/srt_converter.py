@@ -3,8 +3,11 @@ import os
 
 from tqdm import tqdm
 
-def srt_to_plain(input_filename, output_filename):
-    """
+def srt_to_plain(input_filename, output_filename, link=None, name=None):
+    """ Converts .srt subs to plain text documents.
+        Plain text docs are used in tf-idf analysis.
+        Link and name are added for campatibility with the batch_conversion()
+        and should stay None.
     """
     try:
         with open(input_filename, 'r') as inp:
@@ -18,7 +21,8 @@ def srt_to_plain(input_filename, output_filename):
         print(input_filename, '\n', err)
 
 def srt_to_modified(input_filename, output_filename, link, name):
-    """
+    """ Injects a 0's subtitle line with metadata:
+        video URL and name.
     """
     with open(input_filename, 'r') as inp:
         text = inp.read()
@@ -35,20 +39,8 @@ def srt_to_modified(input_filename, output_filename, link, name):
         out.write(text)
 
 def batch_conversion(dir_path_in, dir_path_out, mod_fnct):
-    """
-    """
-    docs = os.listdir(dir_path_in)
-
-    if not os.path.isdir(dir_path_out):
-        os.mkdir(dir_path_out)
-        
-    for doc in tqdm(docs):
-        new_filename = doc.split('*')[0][10:]
-        mod_fnct(dir_path_in+'/'+doc, dir_path_out+'/'+new_filename+'.txt')
-
-
-def batch_conversion_2(dir_path_in, dir_path_out):
-    """
+    """ Converts all the documnets in the dir_path_in using
+        the given mod_fnct() for the conversion.
     """
     docs = os.listdir(dir_path_in)
 
@@ -58,9 +50,11 @@ def batch_conversion_2(dir_path_in, dir_path_out):
     for doc in tqdm(docs):
         link = doc.split('*')[0][10:]
         name = doc.split('*')[1].split('.')[0]
-        srt_to_modified(dir_path_in+'/'+doc, dir_path_out+'/'+link+'.txt', link, name)
+        mod_fnct(dir_path_in+'/'+doc, dir_path_out+'/'+link+'.txt', link, name)
 
-
-inp = '/home/lodya/Desktop/Projects/Term_Project_1/subs/srt'
-out = '/home/lodya/Desktop/Projects/Term_Project_1/subs/mod_srt'
-batch_conversion_2(inp, out)
+if __name__ == "__main__":
+    """ Converts downloaded subs to plain text.
+    """
+    inp = '/home/lodya/Desktop/Projects/Term_Project_1/subs/srt'
+    out = '/home/lodya/Desktop/Projects/Term_Project_1/subs/mod_srt'
+    batch_conversion(inp, out, srt_to_plain)
