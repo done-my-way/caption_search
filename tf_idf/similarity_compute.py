@@ -17,14 +17,14 @@ def find_similar(tfidf_matrix, index, top_n = 5):
     related_docs_indices = [i for i in cosine_similarities.argsort()[::-1] if i != index]
     return [(index, cosine_similarities[index]) for index in related_docs_indices][0:top_n]
 
-def collect_cropus(directory):
+def collect_corpus(directory):
     """ The functions returns a corpus: a list of name-text
         pairs read from the specified directory.
     """
     corpus = []
     for filename in tqdm(os.listdir(directory)):
         with open(directory+'/'+filename, "r") as paper:
-            corpus.append((filename, paper.read()))
+            corpus.append((filename.split('.')[0], paper.read()))
     return corpus
 
 def get_matrix(corpus):
@@ -56,7 +56,7 @@ def estimate_similarities(corpus, tfidf_matrix, output_file):
 if __name__ == "__main__":
     # collect corpus
     directory = '/home/lodya/Desktop/Projects/Term_Project_1/subs/plain'
-    corpus = collect_cropus(directory)
+    corpus = collect_corpus(directory)
     # compute tf-idf matrix
     tfidf_matrix = get_matrix(corpus)
     # find similar documents for each

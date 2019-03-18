@@ -25,7 +25,7 @@ def search_results(search):
     """ Search results webpage."""
 
     # connect to the database
-    sk = StorageKeeper()
+    sk = StorageKeeper(host="139.59.141.97", port=9200)
     # search the query
     search_string = str(search.data['search'])    
     search_results = sk.search_subs(search_string)
@@ -34,8 +34,11 @@ def search_results(search):
 
 @app.route('/video')
 def video():
-    # search for related videos 
-    # related_vids = find_similar()
-    id = request.args['id'][2:]
-    related = find_similar(id+'.txt', './tf_idf/similarities.csv')
-    return render_template('video.html', related=related, id=id)
+    id = request.args['id']
+    related = find_similar(id, './tf_idf/similarities.csv')[0:3]
+    texts = []
+    for row in related:
+        with open("/home/lodya/Desktop/Projects/Term_Project_1/subs/plain/" + row[1]) as f:
+            text = f.read()
+            texts.append(text[:300]+'...')
+    return render_template('video.html', related=related, id=id, texts=texts)

@@ -48,7 +48,7 @@ def batch_conversion(dir_path_in, dir_path_out, mod_fnct):
         os.mkdir(dir_path_out)
         
     for doc in tqdm(docs):
-        link = doc.split('*')[0][10:]
+        link = doc.split('*')[0][8:]
         name = doc.split('*')[1].split('.')[0]
         mod_fnct(dir_path_in+'/'+doc, dir_path_out+'/'+link+'.txt', link, name)
 
@@ -56,5 +56,7 @@ if __name__ == "__main__":
     """ Converts downloaded subs to plain text.
     """
     inp = '/home/lodya/Desktop/Projects/Term_Project_1/subs/srt'
-    out = '/home/lodya/Desktop/Projects/Term_Project_1/subs/mod_srt'
+    out = '/home/lodya/Desktop/Projects/Term_Project_1/subs/plain'
     batch_conversion(inp, out, srt_to_plain)
+    out = '/home/lodya/Desktop/Projects/Term_Project_1/subs/mod_srt'
+    batch_conversion(inp, out, srt_to_modified)

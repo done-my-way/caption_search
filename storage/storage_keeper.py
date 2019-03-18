@@ -4,8 +4,9 @@ import os
 import json
 
 import logging
+from tqdm import tqdm
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.ERROR)
 
 class StorageKeeper:
 
@@ -28,10 +29,10 @@ class StorageKeeper:
         body['url'] = meta_data['url']
         body['name'] = meta_data['name']
         for line in srt_lines:
-            body['time'] = int(line.start.total_seconds())
-            body['content'] = line.content
-            logging.debug(str(idx))
-            print(self.es.index(index=idx, doc_type='_doc', body = body))
+                body['time'] = int(line.start.total_seconds())
+                body['content'] = line.content
+                logging.debug(str(idx))
+                self.es.index(index=idx, doc_type='_doc', body = body)
     
     def search_subs(self, search_phrase, idx="khan_academy"):
         """ Searches for the given search_phrase in the given index (full-text SEARCH).
@@ -90,12 +91,15 @@ def create_index(host="localhost", port=9200):
 
 def batch_upload(host="localhost", port=9200, idx="khan_academy", directory='../subs'):
     sk = StorageKeeper(host=host, port=port)
-    for file in os.listdir(directory):
-        print(file)
-        sk.push_subs(directory+file, idx=idx)
+    for file in tqdm(os.listdir(directory)):
+        #print(file)
+        try:
+            sk.push_subs(directory+file, idx=idx)
+        except Exception as err:
+            print(err)
 
 if __name__=="__main__":
     #create_index(host="139.59.141.97", port=9200)
     #batch_upload(host="139.59.141.97", port=9200, idx="khan_academy", directory='../subs/')
     sk  = StorageKeeper(host="139.59.141.97", port=9200)
-    sk.push_subs('./storage/test_modified.srt')
+    batch_upload(host="139.59.141.97", port=9200, idx="khan_academy", directory='../subs/mod_srt/')
