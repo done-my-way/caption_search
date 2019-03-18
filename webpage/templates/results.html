@@ -5,6 +5,6 @@
         <br>{{post[1]}}</br>
         <br><a href="{{post[2]}}">{{post[2]}}</a></br>
         <iframe src={{'https://www.youtube.com/embed/'+post[2]+'?start='+post[3]}} width="853" height="480" frameborder="0" allowfullscreen></iframe>
-        <br></br>
+        <br><a href="{{ url_for('video', id=post[2]) }}">Related videos</a></br>
   {% endfor %}
 {% endblock %}

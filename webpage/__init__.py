@@ -2,6 +2,7 @@ from flask import Flask
 from webpage.forms import SearchForm
 from flask import request, render_template
 from storage.storage_keeper import StorageKeeper
+from tf_idf.similarity_search import find_similar
 
 app = Flask(__name__)
 
@@ -30,3 +31,11 @@ def search_results(search):
     search_results = sk.search_subs(search_string)
     # return the results webpage
     return render_template('results.html', query=search_string, results=search_results)
+
+@app.route('/video')
+def video():
+    # search for related videos 
+    # related_vids = find_similar()
+    id = request.args['id'][2:]
+    related = find_similar(id+'.txt', './tf_idf/similarities.csv')
+    return render_template('video.html', related=related, id=id)

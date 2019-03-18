@@ -1,0 +1,8 @@
+{% block content %}
+  <h1>Related videos for {{id}}</h1>
+
+  {% for video in related %}
+    <br>{{video[0], video[1], video[2]}}</br>
+  {% endfor %}
+
+{% endblock %}

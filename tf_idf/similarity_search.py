@@ -33,10 +33,18 @@ def find_similar(doc_id, similartities_table_file):
 if __name__ == '__main__':
     # find closest subtitle files
     similarity_table = "/home/lodya/Desktop/Projects/Term_Project_1/caption_search/tf_idf/similarities.csv"
-    closest = find_closest(similarity_table, 10)
-    for row in closest:
-        print(row)
+    #closest = find_closest(similarity_table, 10)
+    #for row in closest:
+    #    print(row)
     # find similar to aSZhNFEOE.txt (vid about vectors) files
     similar  = find_similar('aSZhNFEOE.txt', similarity_table)
+    with open("/home/lodya/Desktop/Projects/Term_Project_1/subs/plain/" + 'aSZhNFEOE.txt') as f:
+        text = f.read()
+        print('SEARCH: ' + 'aSZhNFEOE.txt')
+        print(text[:300] + '...')
     for row in similar:
         print(row)
+        with open("/home/lodya/Desktop/Projects/Term_Project_1/subs/plain/" + row[1]) as f:
+            text = f.read()
+            print(text[:300] + '...')
+    
