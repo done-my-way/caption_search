@@ -1,0 +1,9 @@
+{% block content %}
+  <h2>Search results for '{{ query }}':</h2>
+  {% for post in results %}
+    <h3>{{loop.index}}. {{post[0]}}</h3>
+    <br>[at {{post[3]}}s]: ...{{post[1]}}...</br>
+    <br><center><iframe src={{'https://www.youtube.com/embed/'+post[2]+'?start='+post[3]}} width="420" height="240" frameborder="0" allowfullscreen></iframe></center></center><br>
+    <br><a href="{{ url_for('video', id=post[2], name=post[0]) }}">Related videos</a></br>
+  {% endfor %}
+{% endblock %}

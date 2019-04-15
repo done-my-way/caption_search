@@ -1,0 +1,11 @@
+<doctype html>
+
+  <head>
+    <title>YT Subs Search</title>
+  </head>
+
+  <body>    
+    <h2>YT Subs Search</h2>    
+    {% from "_formhelpers.html" import render_field %}    
+    <form method=post>{{ render_field(form.search) }}</form>
+  </body>

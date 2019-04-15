@@ -2,7 +2,7 @@ import pytube
 import os
 import argparse
 import re
-from xml.etree import ElementTree as ET
+import srt
 
 def channel_links(channel_url):
 
@@ -14,8 +14,6 @@ def channel_links(channel_url):
     lk = pl.parse_links()
 
     name = re.search('.*/user/(.+)/', channel_url)
-
-    print()
 
     with open(f'./subs/channel_links_{name.group(1)}.txt', 'w') as f:
         f.writelines('\n'.join(lk))
@@ -32,6 +30,27 @@ def links_from_file(path):
 
     return lk
 
+def download(url):
+
+    try:
+        sub = dict()
+        yt = pytube.YouTube(url)
+        sub['title'] = str(yt.title)
+        caption = yt.captions.get_by_language_code('en')
+        srt = caption.generate_srt_captions()
+        sub['caption'] = srt
+    except:
+        print('smth went wrong')
+    finally:
+        pass
+    return sub
+
+def srt_to_txt(srt_string):
+    subs = srt.parse(srt_string)
+    plain_text = ''
+    for line in subs:
+        plain_text += line.content + ' '
+    return plain_text
 
 def download_subs(links_list):
 
@@ -40,15 +59,12 @@ def download_subs(links_list):
     if not os.path.exists('./subs'):
         os.mkdir('./subs')
 
-    if not os.path.exists('./subs/xml'):
-        os.mkdir('./subs/xml')
-
     if not os.path.exists('./subs/srt'):
         os.mkdir('./subs/srt')
 
     i = 1
 
-    for url in links_list[77:]:
+    for url in links_list:
         print(base_url + url)
         try:
             yt = pytube.YouTube(base_url + url)
@@ -56,9 +72,8 @@ def download_subs(links_list):
             print(f'{i} out of {len(links_list)}: {title}')
             i += 1
             caption = yt.captions.get_by_language_code('en')
-            with open('./subs/xml/{}.xml'.format(title), 'w') as f:
-                f.write(str(caption.xml_captions))
-            with open('./subs/srt/{}.srt'.format(title), 'w') as f:
+            f_name = url.strip('\n')+'*'+title.strip('\n')
+            with open(f'./subs/srt/{f_name}.srt', 'w') as f:
                 srt = caption.generate_srt_captions()
                 f.writelines(srt)
             with open('./subs/parsed_list.txt', 'a') as f:
@@ -83,8 +98,6 @@ def main():
     else:
         print('no URL provided')
         exit()
-
-    #print(links)
 
     download_subs(links)
 
