@@ -3,3 +3,6 @@ subs
 .vscode
 WebPage/__pycache__
 storage/__pycache__
+tf_idf_vectorizer
+tf_idf_matrix
+corpus_index

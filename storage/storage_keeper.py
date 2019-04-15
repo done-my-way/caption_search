@@ -45,8 +45,8 @@ class StorageKeeper:
                         "content":
                         {
                             "query": f"{search_phrase}", 
-                            "fuzziness": 1
-                        } 
+                            "fuzziness": "AUTO"
+                        }
                     }
                 }
                }
@@ -59,9 +59,9 @@ class StorageKeeper:
 
         for r in res['hits']['hits']:
             vid_name = r['_source']['name']
-            snippet_text = r['_source']['content']
+            snippet_text = r['_source']['content'].strip(':;.,/?-[]\{\}()').lower()
             # snippet_url = 'https://www.youtube.com/embed/'+r['_source']['url'][8:]+'?start='+str(r['_source']['time'])
-            snippet_url = r['_source']['url'][8:]
+            snippet_url = r['_source']['url']
             start_time = str(r['_source']['time'])
             hits.append((vid_name, snippet_text, snippet_url, start_time))
         

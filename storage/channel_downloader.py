@@ -2,6 +2,7 @@ import pytube
 import os
 import argparse
 import re
+import srt
 
 def channel_links(channel_url):
 
@@ -29,6 +30,27 @@ def links_from_file(path):
 
     return lk
 
+def download(url):
+
+    try:
+        sub = dict()
+        yt = pytube.YouTube(url)
+        sub['title'] = str(yt.title)
+        caption = yt.captions.get_by_language_code('en')
+        srt = caption.generate_srt_captions()
+        sub['caption'] = srt
+    except:
+        print('smth went wrong')
+    finally:
+        pass
+    return sub
+
+def srt_to_txt(srt_string):
+    subs = srt.parse(srt_string)
+    plain_text = ''
+    for line in subs:
+        plain_text += line.content + ' '
+    return plain_text
 
 def download_subs(links_list):
 

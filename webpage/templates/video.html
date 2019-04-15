@@ -1,10 +1,9 @@
 {% block content %}
-  <h1>Related videos for {{id}}</h1>
-
+  <h2>Related videos for {{title}}</h2>
   {% for video in range(3)%}
-    <br>{{related[video][1]}}</br>
-    <br>{{texts[video]}}</br>
-    <iframe src={{'https://www.youtube.com/embed/__'+related[video][1]}} width="426" height="240" frameborder="0" allowfullscreen></iframe>
+    <h3>{{related_names[video]}}</h3>
+    {{texts[video]}}
+    <br></br>
+    <center><iframe src={{'https://www.youtube.com/embed/'+related[video][1]}} width="420" height="240" frameborder="0" allowfullscreen></iframe></center>
   {% endfor %}
-
 {% endblock %}
