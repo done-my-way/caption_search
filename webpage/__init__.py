@@ -113,13 +113,3 @@ def search_results_url(search):
         return render_template('video.html', related=related, title=title, texts=texts, related_names=related_names)
     else:
         return 'not a YT-url'
-
-#     #BAD: collects corpus and recomputes matrix every time
-#     url = str(search.data['search_url'])
-#     corpus = collect_corpus('/home/lodya/Desktop/Projects/Term_Project_1/subs/plain')
-#     search_sub = download(url)
-#     search_sub['caption'] = srt_to_txt(search_sub['caption'])
-#     augmented_corpus = corpus.append((search_sub['title'], search_sub['caption']))
-#     tfidf_matrix = get_matrix(augmented_corpus)
-#     most_similar = find_similar(tfidf_matrix, -1)
-#     return most_similar
