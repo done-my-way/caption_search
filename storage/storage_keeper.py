@@ -3,10 +3,7 @@ import srt
 import os
 import json
 
-import logging
 from tqdm import tqdm
-
-logging.basicConfig(level=logging.ERROR)
 
 class StorageKeeper:
 

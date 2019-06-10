@@ -1,10 +1,8 @@
 import subprocess
 import json
 
-from pycaption import DFXPReader, WebVTTReader, WebVTTWriter
+# from pycaption import DFXPReader, WebVTTReader, WebVTTWriter
 import requests
-
-link = 'https://www.youtube.com/watch?v=RSx20wLxctc'
 
 
 def get_subs(link, language='eng', format='vvt'):
@@ -12,6 +10,7 @@ def get_subs(link, language='eng', format='vvt'):
     proc1 = subprocess.Popen(['youtube-dl','--write-sub', 
     '--write-auto-sub', '--skip-download', '-j', link], stdout=subprocess.PIPE)
     info = json.loads(proc1.stdout.read())
+    title = info['title']
     try: 
         for entity in info['subtitles']['en']:
             if entity['ext'] == 'vtt':
@@ -24,11 +23,10 @@ def get_subs(link, language='eng', format='vvt'):
     text = requests.get(url).content.decode()
     # vtt = WebVTTWriter().write(DFXPReader().read(text))
 
-    return text
+    return title, text
 
-
-
-text = get_subs(link)
-print(text)
-with open('test.vtt', 'w') as f:
-    f.write(text)
+if __name__ == '__main__':
+    link = 'https://www.youtube.com/watch?v=RSx20wLxctc'
+    title, text = get_subs(link)
+    with open(title + '.vtt', 'w') as f:
+        f.write(text)
