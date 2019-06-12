@@ -7,3 +7,5 @@ tf_idf_vectorizer
 tf_idf_matrix
 corpus_index
 new_subs
+subs
+meta

@@ -5,6 +5,8 @@ import json
 
 from tqdm import tqdm
 
+import subprocess
+
 class StorageKeeper:
 
     def __init__(self, host="localhost", port=9200):
