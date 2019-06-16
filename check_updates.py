@@ -5,14 +5,17 @@ import json
 import requests
 import webvtt
 from elasticsearch import Elasticsearch
+import time
+import datetime
+import re
 
 # TODO: channel naming
-def get_list(filename='khan.txt'):
+def get_list(filename):
     with open(filename, 'r') as f:
-        old = f.read().split('\n')
+        old = sorted(f.read().split('\n'))
     return old
 
-def check_updates(channel_link='https://www.youtube.com/khanacademy'):    
+def check_updates(channel_link, old_list):    
 
     proc1 = subprocess.Popen(['youtube-dl','--flat-playlist', '-j', channel_link],stdout=subprocess.PIPE)
     proc2 = subprocess.Popen(['jq', '-r', '.id'], stdin=proc1.stdout, stdout=subprocess.PIPE)
@@ -21,12 +24,13 @@ def check_updates(channel_link='https://www.youtube.com/khanacademy'):
 
     while True:
         ID = proc2.stdout.readline()
+        ID = ID.decode('utf-8')
         if not ID:
             break
         updates.add(ID)
 
     # TODO: channel naming
-    old = get_list()
+    old = get_list(old_list)
 
     updates = updates.difference(old)
 
@@ -53,27 +57,34 @@ def get_sub(link, language='eng', format='vvt'):
     
     text = requests.get(url).content.decode()
 
-    return ID, title, text
+    return ID, title, text, info
 
-def to_plain(id, title, channel, vtt):
+def to_plain(ID, title, channel, vtt_file):
+    lines = []
+    previuos = ''
+    vtt_lines = webvtt.read(vtt_file)
+    text = ''
 
-    for line in vtt:
+    for line in vtt_lines:
         try:
             if line != previuos:
                 lines.extend(line.text.strip().splitlines())
                 previuos = line
             # TODO: filter non-alphanumeric
             text = ' '.join(lines)
-            document = {'id': ID, 'name': title, 'channel': channel, 'content': text}
+    
 
         except Exception as err:
             print(err)
 
+    document = {'id': ID, 'name': title, 'channel': channel, 'content': text}
+
     return [document,]
             
 
-def to_lines():
-    vtt_lines = webvtt.read()
+def to_lines(ID, title, channel, vtt_file):
+    #  TODO: do not read file
+    vtt_lines = webvtt.read(vtt_file)
 
     number = 0
     documents = []
@@ -84,38 +95,59 @@ def to_lines():
                     x = time.strptime(line.start.split('.')[0],'%H:%M:%S')
                     prev_start = int(datetime.timedelta(hours=x.tm_hour, minutes=x.tm_min,seconds=x.tm_sec).total_seconds())
                     prev_content = re.sub('\n', ' ', line.text)
-                    documents.append({'id': identifier, 'name': info['title'], 'channel': channel, 'content': prev_content, 'time': prev_start})
+                    documents.append({'id': ID, 'name': title, 'channel': channel, 'content': prev_content, 'time': prev_start})
                 else:           
                     x = time.strptime(line.start.split('.')[0],'%H:%M:%S')
-                    start = int(datetime.timedelta(hours=x.tm_hour,minutes=x.tm_min,seconds=x.tm_sec).total_seconds())
-                    content = re.sub('\n', ' ', line.text)    
-                    time_mid = (start - prev_start) // 2 + prev_start
-                    pos_mid_prev = len(prev_content) // 2
-                    pos_mid = len(content) // 2
-                    content_mid = re.sub('^.*? ', '', prev_content[pos_mid_prev:] + ' ' + content[:pos_mid])
-                    content_mid = re.match('^.* ', content_mid)[0]
-
-                    documents.append({'id': identifier, 'name': info['title'], 'channel': channel, 'content': content_mid, 'time': time_mid})
-
-                    prev_start = start
-                    prev_content = content
-                    
-                    documents.append({'id': identifier, 'name': info['title'], 'channel': channel, 'content': content, 'time': start})                
+                    curr_start = int(datetime.timedelta(hours=x.tm_hour,minutes=x.tm_min,seconds=x.tm_sec).total_seconds())
+                    curr_content = re.sub('\n', ' ', line.text)    
+                    midd_start = (curr_start - prev_start) // 2 + prev_start
+                    midd_content = re.sub('^.*? ', '', prev_content[len(prev_content) // 2:] + ' ' + curr_content[:len(curr_content) // 2])
+                    midd_content = re.match('^.* ', midd_content)[0]
+                    prev_start, prev_content = curr_start, curr_content
+                    documents.append({'id': ID, 'name': title, 'channel': channel, 'content': midd_content, 'time': midd_start})                    
+                    documents.append({'id': ID, 'name': title, 'channel': channel, 'content': curr_content, 'time': curr_start})
+                                
 
             except Exception as err:
                 print(err)
 
             number += 1
         
-        return documents
+    return documents
 
-def push_subs(documents, host="localhost", port=9200, idx='lineswise'):
+def push_subs(documents, connection, idx='lineswise'):
     # TODO:idx naming
-    es = Elasticsearch([{"host": host, "port": port}])
+    # es = Elasticsearch([{"host": host, "port": port}])
     for body in documents:
-        es.index(index=idx, doc_type='_doc', body = body)
+        connection.index(index=idx, doc_type='_doc', body = body)
 
-updates = check_updates()
-for ID in updates:
-    link = 'https://www.youtube.com/watch?v=' + ID
-    sub = get_sub(link)
+if __name__ == '__main__':
+    
+    old_list = 'khan.txt' # list of already processed videos
+    channel_name = 'Khan Academy'
+    channel_link = 'https://www.youtube.com/khanacademy'
+
+    # updates = check_updates(channel_link, old_list)
+    updates = ['RSx20wLxctc']
+    connection = Elasticsearch([{"host": "localhost", "port": 9200}])
+    for ID in updates:
+        print(ID)
+        # TODO: various channels
+        
+        link = 'https://www.youtube.com/watch?v=' + ID
+        ID, title, vtt, info = get_sub(link)
+        # backups
+        with open('./backup/vtt/' + ID, 'w') as f:
+            f.write(vtt)
+        with open('./backup/json/' + ID, 'w') as f:
+            json.dump(info, f)
+
+        plain_doc = to_plain(ID, title, channel_name, './backup/vtt/' + ID)
+        push_subs(plain_doc, connection, 'plain')
+
+        lines_docs = to_lines(ID, title, channel_name, './backup/vtt/' + ID)
+        push_subs(lines_docs, connection, 'linewise')
+    # TODO: make channel name to a parameter
+    with open(old_list, 'a') as f:
+        for ID in updates:
+            f.write(ID + '\n')
