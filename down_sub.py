@@ -7,18 +7,22 @@ import requests
 
 def get_subs(link, language='eng', format='vvt'):
     """ """
-    proc1 = subprocess.Popen(['youtube-dl','--write-sub', 
+    proc1 = subprocess.Popen(['youtube-dl', '--write-sub', 
     '--write-auto-sub', '--skip-download', '-j', link], stdout=subprocess.PIPE)
     info = json.loads(proc1.stdout.read())
     title = info['title']
+    ID = info['id']
     try: 
         for entity in info['subtitles']['en']:
             if entity['ext'] == 'vtt':
                 url = entity['url']
     except Exception:
+    try: 
         for entity in info['automatic_captions']['en']:
             if entity['ext'] == 'vtt':
                 url = entity['url']
+    except Exception:
+        pass
     
     text = requests.get(url).content.decode()
     # vtt = WebVTTWriter().write(DFXPReader().read(text))
