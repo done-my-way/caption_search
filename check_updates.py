@@ -8,6 +8,7 @@ from elasticsearch import Elasticsearch
 import time
 import datetime
 import re
+import csv
 
 # TODO: channel naming
 def get_list(filename):
@@ -123,31 +124,38 @@ def push_subs(documents, connection, idx='lineswise'):
 
 if __name__ == '__main__':
     
-    old_list = 'khan.txt' # list of already processed videos
-    channel_name = 'Khan Academy'
-    channel_link = 'https://www.youtube.com/khanacademy'
+    with open('channels.csv', 'r') as f:
+        reader = csv.reader(f, delimiter='\t')
+        for row in reader:
+            print(row)
+            channel_name = row[0]
+            channel_link = row[1]
+            downloads = row[2]
 
-    # updates = check_updates(channel_link, old_list)
-    updates = ['RSx20wLxctc']
-    connection = Elasticsearch([{"host": "localhost", "port": 9200}])
-    for ID in updates:
-        print(ID)
-        # TODO: various channels
-        
-        link = 'https://www.youtube.com/watch?v=' + ID
-        ID, title, vtt, info = get_sub(link)
-        # backups
-        with open('./backup/vtt/' + ID, 'w') as f:
-            f.write(vtt)
-        with open('./backup/json/' + ID, 'w') as f:
-            json.dump(info, f)
+    # old_list = 'khan.txt' # list of already processed videos
+    # channel_name = 'Khan Academy'
+    # channel_link = 'https://www.youtube.com/khanacademy'
+    # updates = ['RSx20wLxctc']
 
-        plain_doc = to_plain(ID, title, channel_name, './backup/vtt/' + ID)
-        push_subs(plain_doc, connection, 'plain')
+            updates = check_updates(channel_link, downloads)
+            connection = Elasticsearch([{"host": "localhost", "port": 9200}])
+            for ID in updates:
+                print(channel_name, ID)
+                link = 'https://www.youtube.com/watch?v=' + ID
+                ID, title, vtt, info = get_sub(link)
 
-        lines_docs = to_lines(ID, title, channel_name, './backup/vtt/' + ID)
-        push_subs(lines_docs, connection, 'linewise')
-    # TODO: make channel name to a parameter
-    with open(old_list, 'a') as f:
-        for ID in updates:
-            f.write(ID + '\n')
+                # backups
+                with open('./backup/vtt/' + ID, 'w') as f:
+                    f.write(vtt)
+                with open('./backup/json/' + ID, 'w') as f:
+                    json.dump(info, f)
+
+                plain_doc = to_plain(ID, title, channel_name, './backup/vtt/' + ID)
+                push_subs(plain_doc, connection, 'plain')
+
+                lines_docs = to_lines(ID, title, channel_name, './backup/vtt/' + ID)
+                push_subs(lines_docs, connection, 'linewise')
+                
+            with open(downloads, 'a') as f:
+                for ID in updates:
+                    f.write(ID + '\n')
