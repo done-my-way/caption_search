@@ -10,7 +10,7 @@ import datetime
 import re
 import csv
 
-# TODO: channel naming
+
 def get_list(filename):
     with open(filename, 'r') as f:
         old = sorted(f.read().split('\n'))
@@ -30,7 +30,6 @@ def check_updates(channel_link, old_list):
             break
         updates.add(ID)
 
-    # TODO: channel naming
     old = get_list(old_list)
 
     updates = updates.difference(old)
@@ -117,8 +116,6 @@ def to_lines(ID, title, channel, vtt_file):
     return documents
 
 def push_subs(documents, connection, idx='lineswise'):
-    # TODO:idx naming
-    # es = Elasticsearch([{"host": host, "port": port}])
     for body in documents:
         connection.index(index=idx, doc_type='_doc', body = body)
 
@@ -131,12 +128,6 @@ if __name__ == '__main__':
             channel_name = row[0]
             channel_link = row[1]
             downloads = row[2]
-
-    # old_list = 'khan.txt' # list of already processed videos
-    # channel_name = 'Khan Academy'
-    # channel_link = 'https://www.youtube.com/khanacademy'
-    # updates = ['RSx20wLxctc']
-
             updates = check_updates(channel_link, downloads)
             connection = Elasticsearch([{"host": "localhost", "port": 9200}])
             for ID in updates:

@@ -1,8 +1,7 @@
 from flask import Flask
 from webpage.forms import SearchForm
 from flask import request, render_template
-from storage.storage_keeper import StorageKeeper
-from storage.channel_downloader import download, srt_to_txt
+from storage_keeper import StorageKeeper
 import json, srt
 import re
 
@@ -31,19 +30,29 @@ def search_results(search):
     sk = StorageKeeper(host="localhost", port=9200) #"139.59.141.97"
     # search the query
     search_string = str(search.data['search'])    
-    search_results = sk.search_subs(search_string, idx='linewise')
+    res = sk.search_subs(search_string, idx='linewise')
+    hits = []
+    for r in res['hits']['hits']:
+        vid_name = r['_source']['name']
+        snippet_text = r['_source']['content']
+        snippet_url = r['_source']['id']
+        start_time = str(r['_source']['time'])
+        hits.append((vid_name, snippet_text, snippet_url, start_time))
+    search_results = hits
     # return the results webpage
     return render_template('results.html', query=search_string, results=search_results)
 
 @app.route('/video')
 def video():
+
+    """Similar videos webpage."""
+
     ID = request.args['id']
     sk = StorageKeeper(host="localhost", port=9200)
     res = sk.search_text_by_id(ID, idx='plain')
-    text = res['hits']['hits'][0]['_source']['content']
+    text = re.sub(r'\W+', ' ', res['hits']['hits'][0]['_source']['content'])
     title = res['hits']['hits'][0]['_source']['name']
-    print(text)
-    res2 = sk.search_similar_texts(text, idx='plain')
+    res2 = sk.search_similar_texts(text[:1024], idx='plain')
     related_ids = []
     texts = []
     related_titles = []
