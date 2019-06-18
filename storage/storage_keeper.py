@@ -63,11 +63,51 @@ class StorageKeeper:
             snippet_url = r['_source']['id']
             if r['_source'].get('time', False):
                 start_time = str(r['_source']['time'])
-                hits.append((score, vid_name, snippet_text, snippet_url, start_time))
+                hits.append((vid_name, snippet_text, snippet_url, start_time))
             else:
-                hits.append((score, vid_name, snippet_text, snippet_url))
+                hits.append((vid_name, snippet_text, snippet_url))
         return hits
 
+    def search_text_by_id(self, search_phrase, idx):
+        """ Searches for the given search_phrase in the given index (full-text SEARCH).
+            Returns top-n matches.
+        """        
+        body = {"query": 
+                {
+                    "match": 
+                    {
+                        "id":
+                        {
+                            "query": f"{search_phrase}"
+                        }
+                    }
+                }
+               }
+
+        res = self.es.search(index=idx, doc_type="_doc", body=body)
+        
+        return res
+
+    def search_similar_texts(self, search_phrase, idx):
+        """ Searches for the given search_phrase in the given index (full-text SEARCH).
+            Returns top-n matches.
+        """        
+        body = {"query": 
+                {
+                    "match": 
+                    {
+                        "content":
+                        {
+                            "query": f"{search_phrase}",
+                            "fuzziness": "AUTO"
+                        }
+                    }
+                }
+               }
+
+        res = self.es.search(index=idx, doc_type="_doc", body=body)
+        
+        return res
 def create_index(host="localhost", port=9200):
 
     es = Elasticsearch([{"host": host, "port": port}])

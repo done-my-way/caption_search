@@ -2,9 +2,11 @@ from check_updates import *
 import csv
 from tqdm import tqdm
 
-# reuse downloaded files
-# stop = 2000
-if __name__ == '__main__':    
+if __name__ == '__main__':
+    # reuse downloaded files from previous iterations
+    range_from = 0
+    range_to = 1000
+
     channel_name = 'Khan Academy'
     count = 0 
     connection = Elasticsearch([{"host": "localhost", "port": 9200}])
@@ -15,7 +17,7 @@ if __name__ == '__main__':
         for line in reader:
             if line[0] != '':
                 dload.append(line)
-        for line in tqdm(dload[7000:]):
+        for line in tqdm(dload[range_from:range_to]):
             count += 1            
             ID = line[0]
             title = line[1]
